@@ -1,0 +1,41 @@
+---
+name: Ubuntu
+on: [push, pull_request]
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10 
+    steps:
+      - name: Install dependencies
+        run: sudo apt install pkg-config portaudio19-dev libgtk-3-dev libwebkit2gtk-4.0-dev
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Run tests
+        run: CI_RUN='true' bundle exec rake test
+      - name: upload test-fail logs
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v3
+        with:
+          name: test failure logs
+          path: logger/test_failure*.out.log
+  linter:
+    name: Linter
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10 
+    steps:
+      - name: Install dependencies
+        run: sudo apt install pkg-config portaudio19-dev libgtk-3-dev libwebkit2gtk-4.0-dev
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Run linter
+        run: bundle exec rubocop
